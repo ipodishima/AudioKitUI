@@ -105,7 +105,7 @@ public enum AudioHelpers {
 
     private static func createRMSAnalysisArray(signal: [Float], windowSize: Int) -> [Float] {
         let numberOfSamples = signal.count
-        let numberOfOutputArrays = numberOfSamples / windowSize
+        let numberOfOutputArrays = Int(ceil(Double(numberOfSamples) / Double(windowSize)))
         var outputArray: [Float] = []
         for index in 0 ... numberOfOutputArrays - 1 {
             let startIndex = index * windowSize

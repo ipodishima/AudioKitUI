@@ -5,43 +5,55 @@ import AVFoundation
 import SwiftUI
 
 public struct TrackView<Segment: ViewableSegment>: View {
-    var segments: [Segment]
-    var rmsFramesPerSecond: Double
-    var pixelsPerRMS: Double
+    private let segments: [Segment]
+    private let rmsFramesPerSecond: Double
+    private let pixelsPerRMS: Double
+    private let trackBackgroundColor: Color
+    private let fillColor: Color
 
-    public init(segments: [Segment], rmsFramesPerSecond: Double = 50, pixelsPerRMS: Double = 1) {
+    public init(segments: [Segment],
+                rmsFramesPerSecond: Double = 50,
+                pixelsPerRMS: Double = 1,
+                trackBackgroundColor: Color = .gray.opacity(0.1),
+                fillColor: Color = .black) {
         self.segments = segments
         self.rmsFramesPerSecond = rmsFramesPerSecond
         self.pixelsPerRMS = pixelsPerRMS
+        self.trackBackgroundColor = trackBackgroundColor
+        self.fillColor = fillColor
     }
 
     public var body: some View {
         ZStack(alignment: .topLeading) {
-            Color.gray.opacity(0.1)
+            trackBackgroundColor
             ForEach(segments) { segment in
                 SegmentView<Segment>(segment: segment,
                                      rmsFramesPerSecond: rmsFramesPerSecond,
-                                     pixelsPerRMS: pixelsPerRMS)
+                                     pixelsPerRMS: pixelsPerRMS,
+                backgroundColor: trackBackgroundColor,
+                fillColor: fillColor)
             }
         }
     }
 }
 
 struct SegmentView<Segment: ViewableSegment>: View {
-    var segment: Segment
-    var rmsFramesPerSecond: Double
-    var pixelsPerRMS: Double
+    let segment: Segment
+    let rmsFramesPerSecond: Double
+    let pixelsPerRMS: Double
+    let backgroundColor: Color
+    let fillColor: Color
 
     var rmsValuesForRange: [Float] {
         let startingIndex = Int(segment.fileStartTime * rmsFramesPerSecond)
-        let endingIndex = Int(segment.fileEndTime * rmsFramesPerSecond) - 1
+        let endingIndex = min(segment.rmsValues.count, Int(segment.fileEndTime * rmsFramesPerSecond)) - 1
         return Array(segment.rmsValues[startingIndex ... endingIndex])
     }
 
     var body: some View {
         AudioWaveform(rmsVals: rmsValuesForRange)
-            .fill(Color.black)
-            .background(Color.gray.opacity(0.1))
+            .fill(fillColor)
+            .background(backgroundColor)
             .frame(width: pixelsPerRMS * Double(rmsValuesForRange.count))
             .offset(x: segment.playbackStartTime * rmsFramesPerSecond * pixelsPerRMS)
     }
